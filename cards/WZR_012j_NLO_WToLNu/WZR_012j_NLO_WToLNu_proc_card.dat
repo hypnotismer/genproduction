@@ -1,0 +1,9 @@
+import model EffLRSM_NLO
+
+define V = w+ w-
+
+generate p p > V zr [QCD] @0
+add process p p > V zr j [QCD] @1
+add process p p > V zr j j [QCD] @2
+
+output WZR_012j_NLO_WToLNu -nojpeg

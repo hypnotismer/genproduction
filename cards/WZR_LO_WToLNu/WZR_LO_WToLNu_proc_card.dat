@@ -1,0 +1,10 @@
+import model EffLRSM_NLO
+
+define V = w+ w-
+define l = e+ mu+ e- mu-
+define neut = ve vm ve~ vm~
+
+generate p p > V zr , V > l neut
+
+
+output WZR_LO_WToLNu -nojpeg

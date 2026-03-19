@@ -1,0 +1,10 @@
+import model loop_sm-ckm_no_b_mass
+
+define V = w+ w-
+define l = e+ mu+ e- mu-
+define neut = ve vm ve~ vm~
+
+generate p p > V h , V > l neut
+
+
+output WH_LO_HToBBGamma_WToLNu -nojpeg
