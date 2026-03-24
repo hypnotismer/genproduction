@@ -504,7 +504,7 @@ make_gridpack () {
     #################################
     #Add PDF info and copy run card #
     #################################
-    script_dir="${PRODHOME}/Utilities/scripts"
+    script_dir="${GENPROD_ROOT}/Utilities/scripts"
     if [ ! -d "$script_dir" ]; then
       if ! [ -x "$(command -v git)" ]; then
         script_dir=${PRODHOME%genproductions*}/genproductions/Utilities/scripts
@@ -585,7 +585,12 @@ make_gridpack () {
       fi
       
       echo "mg5_path = ../mgbasedir" >> ./Cards/amcatnlo_configuration.txt
-    #   echo "ninja = ../mgbasedir/HEPTools/lib" >> ./Cards/amcatnlo_configuration.txt
+      # Override any build-time absolute ninja path with a path inside the unpacked gridpack.
+      if [ -d "$WORKDIR/$MGBASEDIRORIG/HEPTools/ninja/lib" ]; then
+        echo "ninja = ../mgbasedir/HEPTools/ninja/lib" >> ./Cards/amcatnlo_configuration.txt
+      elif [ -d "$WORKDIR/$MGBASEDIRORIG/HEPTools/lib" ]; then
+        echo "ninja = ../mgbasedir/HEPTools/lib" >> ./Cards/amcatnlo_configuration.txt
+      fi
       echo "cluster_temp_path = None" >> ./Cards/amcatnlo_configuration.txt
     
       cd $WORKDIR
@@ -770,8 +775,11 @@ if [ -z "$PRODHOME" ]; then
   PRODHOME=`pwd`
 fi 
 
+SCRIPT_HOME=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+GENPROD_ROOT=$(cd "${SCRIPT_HOME}/../.." && pwd)
+
 # Folder structure is different on CMSConnect
-helpers_dir=${PRODHOME%genproductions*}/genproductions/Utilities
+helpers_dir=${GENPROD_ROOT}/Utilities
 helpers_file=${helpers_dir}/gridpack_helpers.sh
 if [ ! -f "$helpers_file" ]; then
   if [ -f "${PRODHOME}/Utilities/gridpack_helpers.sh" ]; then
