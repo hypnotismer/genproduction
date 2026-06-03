@@ -67,6 +67,38 @@ setup_runtime_library_paths () {
     prepend_env_path LD_RUN_PATH "$stdcpp_lib"
 }
 
+sanitize_ninja_libtool_metadata () {
+    local mg_root="$1"
+    local heptools_root="$mg_root/HEPTools"
+    local ninja_lib="$heptools_root/ninja/lib"
+    local oneloop_lib="$heptools_root/oneloop"
+    local la_file=""
+
+    for la_file in \
+        "$heptools_root/ninja/lib/libninja.la" \
+        "$heptools_root/ninja/Ninja/src/libninja.la"; do
+        if [ ! -f "$la_file" ]; then
+            continue
+        fi
+
+        # Some local MG trees carry libtool metadata that still points to the
+        # original install area. Rewrite it to the staged tree before compiling.
+        python - "$la_file" "$ninja_lib" "$oneloop_lib" <<'PY'
+from pathlib import Path
+import re
+import sys
+
+la_path = Path(sys.argv[1])
+ninja_lib = sys.argv[2]
+oneloop_lib = sys.argv[3]
+text = la_path.read_text()
+text = re.sub(r"(?m)^libdir='[^']*/HEPTools/ninja/lib'$", f"libdir='{ninja_lib}'", text)
+text = re.sub(r"-L[^'\s]*/HEPTools/oneloop", f"-L{oneloop_lib}", text)
+la_path.write_text(text)
+PY
+    done
+}
+
 # Create tarball with very aggressive xz settings.
 # (trade memory and cpu usage for compression ratio)
 make_tarball () {
@@ -234,6 +266,7 @@ make_gridpack () {
         rm "$MG"
       fi
       setup_runtime_library_paths "$WORKDIR/$MGBASEDIRORIG"
+      sanitize_ninja_libtool_metadata "$WORKDIR/$MGBASEDIRORIG"
     
       #############################################
       #Apply any necessary patches on top of official release
